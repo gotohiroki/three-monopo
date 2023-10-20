@@ -198,7 +198,7 @@ export default class webGL {
     this.composer.addPass( new RenderPass( this.scene, this.camera ) );
 
     const effect1 = new ShaderPass( DotScreenShader );
-    effect1.uniforms[ 'scale' ].value = 0.05;
+    effect1.uniforms[ 'scale' ].value = 4;
     this.composer.addPass( effect1 );
   }
 
