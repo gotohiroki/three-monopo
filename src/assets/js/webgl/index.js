@@ -20,7 +20,13 @@ import {
   sRGBEncoding,
   CubeCamera,
 } from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { DotScreenShader } from "./CustomShader.js";
+
 import vertexShader from "./shader/vertex.glsl";
 import vertexShader1 from "./shader/vertex1.glsl";
 import fragmentShader from "./shader/fragment.glsl";
@@ -59,6 +65,7 @@ export default class webGL {
     this.material = null;
     this.mesh = null;
     this.uniforms = null;
+    this.composer = null;
     this.clock = new Clock();
   }
 
@@ -71,6 +78,7 @@ export default class webGL {
     this._setTexture();
     this._createMesh();
     this._createMesh1();
+    this._createPost();
   }
 
   _setScene() {
@@ -114,7 +122,7 @@ export default class webGL {
     this.gui = new GUI();
     // this.gui.add(this.material, 'wireframe', true);
     this.gui.add(this.settings, 'progress', 0, 1, 0.01);
-    // this.gui.add(this)
+    // console.log(this.material.uniforms.uFirstColor.value)
   }
 
   _setContorols() {
@@ -134,6 +142,11 @@ export default class webGL {
         uTime: { value: 0 },
         uResolution: { value: new Vector4() },
         uTexture: { value: this.texture },
+        uFirstColor: { value: new Color(120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0) },
+        uSecondColor: { value: new Color(224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0) },
+        uAccentColor: { value: new Color(0.0, 0.0, 0.0) },
+        // vec3 baseFirst = vec3( 120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0 );
+        // vec3 baseSecond = vec3( 224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0);
       },
       vertexShader,
       fragmentShader,
@@ -143,6 +156,11 @@ export default class webGL {
 
     this.mesh = new Mesh(this.geometry, this.material);
     this.scene.add(this.mesh);
+
+    const backGround = this.gui.addFolder('BackGround');
+    backGround.addColor(this.material.uniforms, 'uFirstColor').onChange(() => {
+      this.material.needsUpdate = true;
+    });
   }
   
   // オブジェクト
@@ -174,8 +192,19 @@ export default class webGL {
     this.scene.add(this.mesh1);
   }
 
+  // ポストプロセッシング
+  _createPost() {
+    this.composer = new EffectComposer( this.renderer );
+    this.composer.addPass( new RenderPass( this.scene, this.camera ) );
+
+    const effect1 = new ShaderPass( DotScreenShader );
+    effect1.uniforms[ 'scale' ].value = 0.05;
+    this.composer.addPass( effect1 );
+  }
+
   _render() {
-    this.renderer.render( this.scene, this.camera );
+    // this.renderer.render( this.scene, this.camera );
+    this.composer.render( this.scene, this.camera );
   }
 
   // 毎フレーム呼び出す
@@ -195,7 +224,9 @@ export default class webGL {
     this.camera.aspect = windowWidth / windowHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    // this.composer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(windowWidth, windowHeight);
+    this.composer.setSize(windowWidth, windowHeight);
     // this.cameraParam.fovRad = (this.cameraParam.fov / 2) * (Math.PI / 180);
     // this.cameraParam.dist = windowHeight / 2 / Math.tan(this.cameraParam.fovRad);
     // this.camera.position.z = this.cameraParam.dist;

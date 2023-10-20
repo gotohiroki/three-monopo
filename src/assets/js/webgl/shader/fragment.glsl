@@ -3,6 +3,11 @@ uniform float uProgress;
 uniform sampler2D uTexture;
 uniform vec4 uResolution;
 
+// カラー
+uniform vec3 uFirstColor;
+uniform vec3 uSecondColor;
+uniform vec3 uAccentColor;
+
 varying vec2 vUv;
 varying vec3 vPosition;
 
@@ -31,10 +36,9 @@ void main() {
   float n = noise(vPosition + uTime);
 
   // カラー
-  vec3 baseFirst = vec3( 120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0 );
-  vec3 accent = vec3( 0.0, 0.0, 0.0 );
-  vec3 baseSecond = vec3( 224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0);
-  vec3 baseThird = vec3( 232.0 / 255.0, 201.0 / 255.0, 73.0 / 255.0);
+  // vec3 baseFirst = vec3(120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0);
+  // vec3 baseSecond = vec3( 224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0);
+  // vec3 accent = vec3( 0.0, 0.0, 0.0 );
 
   // ポジション
   vec2 baseUV = rotate2D(n) * vPosition.xy * 0.1;
@@ -42,8 +46,8 @@ void main() {
   float secoundPattern = lines(baseUV, 0.1);
 
   // カラー + ポシション
-  vec3 baseColor = mix( baseSecond, baseFirst, basePattern );
-  vec3 secoundBaseColor = mix( baseColor, accent, secoundPattern );
+  vec3 baseColor = mix( uSecondColor, uFirstColor, basePattern );
+  vec3 secoundBaseColor = mix( baseColor, uAccentColor, secoundPattern );
 
   // gl_FragColor = vec4(n, 0.0, 0.0, 1.0);
   // gl_FragColor = vec4(baseUV, 0.0, 1.0);
