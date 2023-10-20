@@ -1,6 +1,4 @@
 uniform float uTime;
-uniform float uNoiseFreq;
-uniform float uNoiseAmp;
 
 varying vec2 vUv;
 varying vec3 vPosition;

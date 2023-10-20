@@ -13,14 +13,21 @@ import {
   Clock,
   Vector4,
   SphereGeometry,
+  WebGLRenderTarget,
+  WebGLCubeRenderTarget,
+  LinearMipMapLinearFilter,
+  RGBAFormat,
+  sRGBEncoding,
+  CubeCamera,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import vertexShader from "./shader/vertex.glsl";
+import vertexShader1 from "./shader/vertex1.glsl";
 import fragmentShader from "./shader/fragment.glsl";
+import fragmentShader1 from "./shader/fragment1.glsl";
 import GUI from "lil-gui";
 
 export default class webGL {
-  // コンストラクタ
   constructor(containerSelector) {
     // canvasタグが配置されるコンテナを取得
     this.container = document.querySelector(containerSelector);
@@ -63,6 +70,7 @@ export default class webGL {
     this._setContorols();
     this._setTexture();
     this._createMesh();
+    this._createMesh1();
   }
 
   _setScene() {
@@ -117,17 +125,15 @@ export default class webGL {
     this.texture = new TextureLoader().load(this.image);
   }
 
+  // 背景
   _createMesh() {
-    // this.geometry = new PlaneGeometry(1, 1, 32, 32);
     this.geometry = new SphereGeometry(1.5, 32, 32);
     this.material = new ShaderMaterial({
       uniforms: {
         uProgress: {value: 0},
         uTime: { value: 0 },
-        uResolution: { value: new Vector4(0,0,0,0) },
+        uResolution: { value: new Vector4() },
         uTexture: { value: this.texture },
-        uNoiseFreq: { value: 3.5 },
-        uNoiseAmp: { value: 0.15 },
       },
       vertexShader,
       fragmentShader,
@@ -138,9 +144,38 @@ export default class webGL {
     this.mesh = new Mesh(this.geometry, this.material);
     this.scene.add(this.mesh);
   }
+  
+  // オブジェクト
+  _createMesh1() {
+    this.cubeRenderTarget = new WebGLCubeRenderTarget(256, {
+        format: RGBAFormat,
+        generateMipmaps: true,
+        minFilter: LinearMipMapLinearFilter,
+        encoding: sRGBEncoding,
+      }
+    );
+
+    this.cubeCamera = new CubeCamera( 0.1, 10, this.cubeRenderTarget );
+
+    this.geometry1 = new SphereGeometry(0.4, 32, 32);
+    this.material1 = new ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        tCube: { value: null },
+        uResolution: { value: new Vector4() },
+      },
+      vertexShader: vertexShader1,
+      fragmentShader: fragmentShader1,
+      // wireframe: true,
+      side: DoubleSide,
+    });
+
+    this.mesh1 = new Mesh(this.geometry1, this.material1);
+    this.scene.add(this.mesh1);
+  }
 
   _render() {
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render( this.scene, this.camera );
   }
 
   // 毎フレーム呼び出す
@@ -148,7 +183,9 @@ export default class webGL {
     this.time += 0.01;
     this.material.uniforms.uTime.value = this.clock.getElapsedTime();
     // this.material.uniforms.uTime.value = this.time;
-    requestAnimationFrame(this.update.bind(this));
+    this.cubeCamera.update( this.renderer, this.scene );
+    this.material1.uniforms.tCube.value = this.cubeRenderTarget.texture;
+    requestAnimationFrame( this.update.bind(this) );
     this._render();
   }
 
