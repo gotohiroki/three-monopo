@@ -1,4 +1,7 @@
-# three-monopo
+# monopo
+
+* [Demo](https://gotohiroki.github.io/three-monopo/dist/)
+* [monopo website](https://monopo.vn/)
 
 <img src="screenshot.png">
 
@@ -18,7 +21,8 @@ npm run build
 npm run preview
 ```
 
-📝 ~ Note
-https://monopo.vn/
-https://www.youtube.com/watch?v=sPBb-0al7Y0
+## 📝 ~ Reference
+* [monopo](https://monopo.vn/)
+* [Beautiful noise with three.js from monopo.vn #1](https://www.youtube.com/watch?v=sPBb-0al7Y0)
+* [nemutas](https://github.com/nemutas/r3f-monopo)
 
