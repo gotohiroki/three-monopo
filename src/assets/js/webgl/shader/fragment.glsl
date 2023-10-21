@@ -2,6 +2,9 @@ uniform float uTime;
 uniform float uProgress;
 uniform sampler2D uTexture;
 uniform vec4 uResolution;
+uniform float uPatternScale;
+uniform float uPatternBias1;
+uniform float uPatternBias2;
 
 // カラー
 uniform vec3 uFirstColor;
@@ -18,9 +21,9 @@ float PI = 3.1415926535897932384626433832795;
 float lines(vec2 uv, float offset) {
   // return abs(sin(uv.x * 5.0));
   return smoothstep(
-    0.0, 
-    0.5 + offset * 0.5, 
-    abs(0.5 * (sin(uv.x * 30.0) + offset * 2.0)) 
+    0.0,
+    0.5 + offset * 0.5,
+    abs(0.5 * (sin(uv.x * 30.0) + offset * 2.0))
   );
 }
 
@@ -41,9 +44,9 @@ void main() {
   // vec3 accent = vec3( 0.0, 0.0, 0.0 );
 
   // ポジション
-  vec2 baseUV = rotate2D(n) * vPosition.xy * 0.1;
-  float basePattern = lines(baseUV, 0.5);
-  float secoundPattern = lines(baseUV, 0.1);
+  vec2 baseUV = rotate2D(n) * vPosition.xy * uPatternScale;
+  float basePattern = lines(baseUV, uPatternBias1);
+  float secoundPattern = lines(baseUV, uPatternBias2);
 
   // カラー + ポシション
   vec3 baseColor = mix( uSecondColor, uFirstColor, basePattern );

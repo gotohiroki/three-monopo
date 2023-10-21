@@ -37,7 +37,7 @@ export default class webGL {
   constructor(containerSelector) {
     // canvasタグが配置されるコンテナを取得
     this.container = document.querySelector(containerSelector);
-    
+
     this.renderParam = {
       clearColor: 0xffffff,
       width: window.innerWidth,
@@ -99,9 +99,9 @@ export default class webGL {
   _setCamera() {
     // ウィンドウとwebGLの座標を一致させるため、描画がウィンドウぴったりになるようカメラを調整
     this.camera = new PerspectiveCamera(
-      this.cameraParam.fov, 
-      this.cameraParam.aspect, 
-      this.cameraParam.near, 
+      this.cameraParam.fov,
+      this.cameraParam.aspect,
+      this.cameraParam.near,
       this.cameraParam.far
     );
     this.camera.position.set(
@@ -117,12 +117,52 @@ export default class webGL {
   _setGui() {
     let that = this;
     this.settings = {
-      progress: 0,
+      uPatternScale: 0.1,
+      uPatternBias1: 0.5,
+      uPatternBias2: 0.1,
+      uFirstColor: new Color(120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0),
+      uSecondColor: new Color(224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0),
+      uAccentColor: new Color(0.0, 0.0, 0.0),
+      uRefractionRatio: 1.02,
+      uFresnelBias: 0.1,
+      uFresnelScale: 2.0,
+      uFresnelPower: 1.0,
     }
     this.gui = new GUI();
-    // this.gui.add(this.material, 'wireframe', true);
-    this.gui.add(this.settings, 'progress', 0, 1, 0.01);
-    // console.log(this.material.uniforms.uFirstColor.value)
+
+    const bgFolder = this.gui.addFolder('BackGround');
+    bgFolder.add(this.settings, 'uPatternScale', 0.01, 1, 0.01,).name('Pattern Scale').onChange(() => {
+      this.material.uniforms.uPatternScale.value = this.settings.uPatternScale;
+    });
+    bgFolder.add(this.settings, 'uPatternBias1', 0, 1, 0.01,).name('Pattern Bias1').onChange(() => {
+      this.material.uniforms.uPatternBias1.value = this.settings.uPatternBias1;
+    });
+    bgFolder.add(this.settings, 'uPatternBias2', 0, 1, 0.01,).name('Pattern Bias2').onChange(() => {
+      this.material.uniforms.uPatternBias2.value = this.settings.uPatternBias2;
+    });
+    bgFolder.addColor(this.settings, 'uFirstColor').name('First Color').onChange(() => {
+      this.material.uniforms.uFirstColor.value = this.settings.uFirstColor;
+    });
+    bgFolder.addColor(this.settings, 'uSecondColor').name('Second Color').onChange(() => {
+      this.material.uniforms.uSecondColor.value = this.settings.uSecondColor;
+    });
+    bgFolder.addColor(this.settings, 'uAccentColor').name('Accent Color').onChange(() => {
+      this.material.uniforms.uAccentColor.value = this.settings.uAccentColor;
+    });
+
+    const geometryFolder = this.gui.addFolder('Geometry');
+    geometryFolder.add(this.settings, 'uRefractionRatio', 0.5, 2, 0.01,).name('Refraction Ratio').onChange(() => {
+      this.material1.uniforms.uRefractionRatio.value = this.settings.uRefractionRatio;
+    });
+    geometryFolder.add(this.settings, 'uFresnelBias', 0, 1, 0.01).name('Fresnel Bias').onChange(() => {
+      this.material1.uniforms.uFresnelBias.value = this.settings.uFresnelBias;
+    });
+    geometryFolder.add(this.settings, 'uFresnelScale', 0, 5, 0.01).name('Fresnel Scale').onChange(() => {
+      this.material1.uniforms.uFresnelScale.value = this.settings.uFresnelScale;
+    });
+    geometryFolder.add(this.settings, 'uFresnelPower', 0, 5, 0.01).name('Fresnel Power').onChange(() => {
+      this.material1.uniforms.uFresnelPower.value = this.settings.uFresnelPower;
+    });
   }
 
   _setContorols() {
@@ -142,6 +182,9 @@ export default class webGL {
         uTime: { value: 0 },
         uResolution: { value: new Vector4() },
         uTexture: { value: this.texture },
+        uPatternScale: {value: 0.1},
+        uPatternBias1: {value: 0.5},
+        uPatternBias2: {value: 0.1},
         uFirstColor: { value: new Color(120.0 / 255.0, 158.0 / 255.0, 113.0 / 255.0) },
         uSecondColor: { value: new Color(224.0 / 255.0, 148.0 / 255.0, 66.0 / 255.0) },
         uAccentColor: { value: new Color(0.0, 0.0, 0.0) },
@@ -156,13 +199,8 @@ export default class webGL {
 
     this.mesh = new Mesh(this.geometry, this.material);
     this.scene.add(this.mesh);
-
-    const backGround = this.gui.addFolder('BackGround');
-    backGround.addColor(this.material.uniforms, 'uFirstColor').onChange(() => {
-      this.material.needsUpdate = true;
-    });
   }
-  
+
   // オブジェクト
   _createMesh1() {
     this.cubeRenderTarget = new WebGLCubeRenderTarget(256, {
@@ -181,6 +219,10 @@ export default class webGL {
         uTime: { value: 0 },
         tCube: { value: null },
         uResolution: { value: new Vector4() },
+        uRefractionRatio: { value: 1.02},
+        uFresnelBias: { value: 0.1},
+        uFresnelScale: { value: 2.0},
+        uFresnelPower: {value: 1.0},
       },
       vertexShader: vertexShader1,
       fragmentShader: fragmentShader1,
@@ -211,6 +253,7 @@ export default class webGL {
   update() {
     this.time += 0.01;
     this.material.uniforms.uTime.value = this.clock.getElapsedTime();
+    this.material1.uniforms.uTime.value = this.clock.getElapsedTime();
     // this.material.uniforms.uTime.value = this.time;
     this.cubeCamera.update( this.renderer, this.scene );
     this.material1.uniforms.tCube.value = this.cubeRenderTarget.texture;
