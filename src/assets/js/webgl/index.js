@@ -74,7 +74,7 @@ export default class webGL {
     this._setRender();
     this._setCamera();
     this._setGui();
-    this._setContorols();
+    // this._setContorols();
     this._setTexture();
     this._createMesh();
     this._createMesh1();
@@ -252,8 +252,8 @@ export default class webGL {
   // 毎フレーム呼び出す
   update() {
     this.time += 0.01;
-    this.material.uniforms.uTime.value = this.clock.getElapsedTime();
-    this.material1.uniforms.uTime.value = this.clock.getElapsedTime();
+    this.material.uniforms.uTime.value += 0.01;
+    this.material1.uniforms.uTime.value += 0.01;
     // this.material.uniforms.uTime.value = this.time;
     this.cubeCamera.update( this.renderer, this.scene );
     this.material1.uniforms.tCube.value = this.cubeRenderTarget.texture;
