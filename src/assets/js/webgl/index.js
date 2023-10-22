@@ -21,6 +21,8 @@ import {
   CubeCamera,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import Stats from "three/examples/jsm/libs/stats.module";
+import { lerp } from "three/src/math/MathUtils.js";
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -32,6 +34,7 @@ import vertexShader1 from "./shader/vertex1.glsl";
 import fragmentShader from "./shader/fragment.glsl";
 import fragmentShader1 from "./shader/fragment1.glsl";
 import GUI from "lil-gui";
+
 
 export default class webGL {
   constructor(containerSelector) {
@@ -56,6 +59,13 @@ export default class webGL {
       z: 1.5,
     };
 
+    this.mouse = {
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
+    };
+
     this.scene = null;
     this.camera = null;
     this.renderer = null;
@@ -73,12 +83,21 @@ export default class webGL {
     this._setScene();
     this._setRender();
     this._setCamera();
+
     this._setGui();
+    this._setStats();
     // this._setContorols();
+
     this._setTexture();
     this._createMesh();
     this._createMesh1();
     this._createPost();
+
+    window.addEventListener('mousemove', (e) => {
+      this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+
   }
 
   _setScene() {
@@ -163,6 +182,11 @@ export default class webGL {
     geometryFolder.add(this.settings, 'uFresnelPower', 0, 5, 0.01).name('Fresnel Power').onChange(() => {
       this.material1.uniforms.uFresnelPower.value = this.settings.uFresnelPower;
     });
+  }
+
+  _setStats() {
+    this.stats = new Stats();
+    document.body.appendChild(this.stats.dom);
   }
 
   _setContorols() {
@@ -251,6 +275,15 @@ export default class webGL {
 
   // 毎フレーム呼び出す
   update() {
+    const mouseX = this.mouse.x * 2;
+    const mouseY = this.mouse.y * 2;
+    const mouseMotion = new Vector3(0, 0, 1);
+    mouseMotion.x += lerp(this.mouse.lastX, mouseX, 0.2);
+    mouseMotion.y += lerp(this.mouse.lastY, mouseY, 0.2);
+    this.mesh1.lookAt(mouseMotion);
+
+    this.stats.update();
+
     this.time += 0.01;
     this.material.uniforms.uTime.value += 0.01;
     this.material1.uniforms.uTime.value += 0.01;

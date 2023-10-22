@@ -3,8 +3,6 @@ uniform float uTime;
 varying vec2 vUv;
 varying vec3 vPosition;
 
-#include './_inc/simplex3d.glsl'
-
 float PI = 3.1415926535897932384626433832795;
 
 void main() {
