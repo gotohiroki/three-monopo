@@ -85,7 +85,7 @@ export default class webGL {
     this._setCamera();
 
     this._setGui();
-    this._setStats();
+    // this._setStats();
     // this._setContorols();
 
     this._setTexture();
@@ -150,6 +150,7 @@ export default class webGL {
     this.gui = new GUI();
 
     const bgFolder = this.gui.addFolder('BackGround');
+    bgFolder.close();
     bgFolder.add(this.settings, 'uPatternScale', 0.01, 1, 0.01,).name('Pattern Scale').onChange(() => {
       this.material.uniforms.uPatternScale.value = this.settings.uPatternScale;
     });
@@ -170,6 +171,7 @@ export default class webGL {
     });
 
     const geometryFolder = this.gui.addFolder('Geometry');
+    geometryFolder.close();
     geometryFolder.add(this.settings, 'uRefractionRatio', 0.5, 2, 0.01,).name('Refraction Ratio').onChange(() => {
       this.material1.uniforms.uRefractionRatio.value = this.settings.uRefractionRatio;
     });
@@ -184,10 +186,10 @@ export default class webGL {
     });
   }
 
-  _setStats() {
-    this.stats = new Stats();
-    document.body.appendChild(this.stats.dom);
-  }
+  // _setStats() {
+  //   this.stats = new Stats();
+  //   document.body.appendChild(this.stats.dom);
+  // }
 
   _setContorols() {
     this.contorols = new OrbitControls(this.camera, this.renderer.domElement);
@@ -282,7 +284,7 @@ export default class webGL {
     mouseMotion.y += lerp(this.mouse.lastY, mouseY, 0.2);
     this.mesh1.lookAt(mouseMotion);
 
-    this.stats.update();
+    // this.stats.update();
 
     this.time += 0.01;
     this.material.uniforms.uTime.value += 0.01;
